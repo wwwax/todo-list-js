@@ -17,9 +17,51 @@ const path = {
     fonts: project_folder + "/assets/fonts/",
   },
   watch: {
-    html: source_folder + "index.html",
+    html: source_folder + "/index.html",
     css: source_folder + "/assets/scss/**/*.scss",
     js: source_folder + "/assets/js/main.js",
   },
-  del: "",
+  del: "dist",
 };
+
+// ################
+
+const browser_sync = require("browser-sync").create();
+const del = require("del");
+const { src, dest } = require("gulp");
+const gulp = require("gulp");
+
+// ################
+
+function browserSync() {
+  browser_sync.init({
+    server: {
+      baseDir: "./dist/",
+    },
+    port: 3000,
+    notify: true,
+  });
+}
+
+function clean() {
+  return del(path.del);
+}
+
+function html() {
+  return src(path.src.html)
+    .pipe(dest(path.build.html))
+    .pipe(browser_sync.stream());
+}
+
+function watchFiles() {
+  gulp.watch([path.watch.html], html);
+}
+
+// ################
+
+const build = gulp.series(clean, gulp.parallel(html));
+const watch = gulp.parallel(build, watchFiles, browserSync);
+
+exports.html = html;
+exports.clean = clean;
+exports.default = watch;
